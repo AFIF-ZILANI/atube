@@ -1,0 +1,15 @@
+{
+  "name": "atube",
+  "version": "1.0.0",
+  "description": "it is the backend of atube",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "nairobi"
+  ],
+  "author": "AFIF ZILANI",
+  "license": "ISC"
+}
