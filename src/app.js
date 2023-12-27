@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
+import { router } from "./routes/user.routes.js";
 
 const app = express();
 
@@ -26,5 +27,10 @@ app.use(
 
 app.use(express.static("public"));
 app.use(cookieParser());
+
+
+// routers
+
+app.use("api/v1/auth", router)
 
 export default app;
