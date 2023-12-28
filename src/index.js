@@ -1,6 +1,7 @@
 import app from "./app.js";
 import { connectDB } from "./db/dbConfig.js";
 import dotenv from "dotenv";
+import { emailValidator } from "./utils/emailValidator.js";
 
 dotenv.config({
   path: "./env",

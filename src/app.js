@@ -31,6 +31,6 @@ app.use(cookieParser());
 
 // routers
 
-app.use("api/v1/auth", router)
+app.use("/api/v1/auth", router)
 
 export default app;
