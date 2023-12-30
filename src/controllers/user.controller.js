@@ -8,9 +8,7 @@ import { ApiResponse } from "../utils/apiResponse.js";
 export const registerUser = asyncHandler(async (request, response) => {
   const { fullName, username, email, password } = request.body;
   if (
-    [fullName, username, email, password, avatar].some(
-      (field) => field?.trim() === ""
-    )
+    [fullName, username, email, password].some((field) => field?.trim() === "")
   ) {
     throw new ApiError(400, "All fields are required!");
   }
@@ -23,7 +21,7 @@ export const registerUser = asyncHandler(async (request, response) => {
     throw new ApiError(400, "Password length must be greater than 10 char");
   }
 
-  const existedUser = User.findOne({
+  const existedUser = await User.findOne({
     $or: [{ username }, { email }],
   });
 
@@ -31,8 +29,18 @@ export const registerUser = asyncHandler(async (request, response) => {
     throw new ApiError(409, "User with email or password already exists!");
   }
 
-  const avatarLocalPath = request.files?.avatar[0]?.path;
-  const coverImageLocalPath = request.files?.coverImage[0]?.path;
+  // console.log(request.files)
+  const avatarLocalPath = request.files[0]?.path;
+  // const coverImageLocalPath = request.files[1].path;
+
+  let coverImageLocalPath;
+  if (
+    request.files &&
+    Array.isArray(request.files) &&
+    request.files.length > 1
+  ) {
+    coverImageLocalPath = request.files[1].path;
+  }
 
   if (!avatarLocalPath) {
     throw new ApiError(400, "Avatar must be required!");
@@ -41,6 +49,7 @@ export const registerUser = asyncHandler(async (request, response) => {
   const avatar = await uploadOnCloudinary(avatarLocalPath);
   const coverImage = await uploadOnCloudinary(coverImageLocalPath);
 
+  console.log(coverImage);
   if (!avatar) {
     throw new ApiError(400, "Avatar file is required!");
   }
@@ -63,7 +72,7 @@ export const registerUser = asyncHandler(async (request, response) => {
   }
 
   return response
-    .status(2001)
+    .status(201)
     .json(new ApiResponse(201, createdUser, "User registered successfully!"));
 });
 
@@ -79,5 +88,4 @@ export const loginUser = asyncHandler(async (request, response) => {
   }
 
   const existedUser = User.findOne({ email });
-
 });

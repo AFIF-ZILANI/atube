@@ -33,7 +33,7 @@ const userSchema = new Schema(
       type: String,
       required: true,
     },
-    coverPhoto: {
+    coverImage: {
       type: String,
     },
     watchHistory: [
@@ -44,7 +44,6 @@ const userSchema = new Schema(
     ],
     refreshToken: {
       type: String,
-      required: true,
     },
   },
   { timestamps: true }
