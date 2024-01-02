@@ -120,15 +120,14 @@ export const loginUser = asyncHandler(async (request, response) => {
   user.refreshToken = refreshToken;
   await user.save({ validateBeforeSave: false });
 
-  const loggedInUser = user.select("-password -refreshToken");
+  const loggedInUser = await User.findById(user._id).select("-password -refreshToken");
 
   const options = {
     httpOnly: true,
-    secure: true,
+    // secure: true,
   };
 
-  return response
-    .status(200)
+  return response.status(200)
     .cookie("accessToken", accessToken, options)
     .cookie("refreshToken", refreshToken, options)
     .json(

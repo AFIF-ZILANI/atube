@@ -13,4 +13,4 @@ router.route("/register").post(upload.array("images", 2), registerUser);
 
 router.route("/login").post(loginUser);
 
-router.route("/logout", verifyJWT, logoutUser);
+router.route("/logout").post(verifyJWT, logoutUser);
