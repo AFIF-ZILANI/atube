@@ -7,10 +7,10 @@ export const verifyJWT = asyncHandler(async (request, _, next) => {
   try { 
     const accessToken =
       request.cookies?.accessToken ||
-      request.header("Authorization")?.replace("Bearer ", "") || request.body?.accessToken;
+      request.header("Authorization")?.replace("Bearer ", "");
 
     if (!accessToken) {
-      throw new ApiError(401, "Unauthoried request!");
+      throw new ApiError(401, "Unauthorized request!");
     }
 
     const decodedData = Jwt.verify(
