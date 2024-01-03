@@ -425,3 +425,74 @@ export const changeCurrentCoverImage = asyncHandler(
     }
   }
 );
+
+export const getUserProfile = asyncHandler(async (request, response) => {
+  const { username } = request.params;
+
+  if (!username) {
+    ERROR(400, "username is missing!");
+  }
+
+  const channel = await User.aggregate([
+    {
+      $match: {
+        username,
+      },
+    },
+    {
+      $lookup: {
+        from: "subscriptions",
+        localField: "_id",
+        foreignField: "channel",
+        as: "subscribers",
+      },
+    },
+    {
+      $lookup: {
+        from: "subscriptions",
+        localField: "_id",
+        foreignField: "subscriber",
+        as: "subscribed",
+      },
+    },
+    {
+      $addFields: {
+        subscribersCount: {
+          $size: "$subscribers",
+        },
+        subscribedCount: {
+          $size: "$subscribed",
+        },
+        isSubscribed: {
+          $cond: {
+            if: {
+              $in: [request.user?._id, "$subscribers.subscriber"],
+            },
+            then: true,
+            else: false,
+          },
+        },
+      },
+    },
+    {
+      $project: {
+        fullName: 1,
+        username: 1,
+        avatar: 1,
+        coverImage: 1,
+        isSubscribed: 1,
+        subscribersCount: 1,
+        subscribedCount: 1,
+        createdAt: 1,
+      },
+    },
+  ]);
+
+  if (!channel?.length){
+    ERROR(404, "Channel dones not exists!")
+  }
+
+  return response.status(200).json(
+    new ApiResponse(200, channel[0], "User channel fetched successfully!")
+  )
+});
