@@ -5,6 +5,7 @@ import { uploadOnCloudinary } from "../utils/cloud.js";
 import { emailValidator } from "../utils/emailValidator.js";
 import { ApiResponse } from "../utils/apiResponse.js";
 import Jwt from "jsonwebtoken";
+import mongoose from "mongoose";
 
 const ERROR = (code, err) => {
   throw new ApiError(code, err);
@@ -488,11 +489,65 @@ export const getUserProfile = asyncHandler(async (request, response) => {
     },
   ]);
 
-  if (!channel?.length){
-    ERROR(404, "Channel dones not exists!")
+  if (!channel?.length) {
+    ERROR(404, "Channel dones not exists!");
+  }
+
+  return response
+    .status(200)
+    .json(
+      new ApiResponse(200, channel[0], "User channel fetched successfully!")
+    );
+});
+
+export const getWatchHistory = asyncHandler(async (request, response) => {
+  const user = await User.aggregate([
+    {
+      $match: {
+        _id: new mongoose.Schema.Types.ObjectId(request.auth?._id),
+      },
+    },
+    {
+      $lookup: {
+        from: "videos",
+        localField: "watchHistory",
+        foreignField: "_id",
+        as: "watchHistory",
+        pipeline: [
+          {
+            $lookup: {
+              from: "users",
+              localField: "owner",
+              foreignField: "_id",
+              as: "owner",
+              pipeline: [
+                {
+                  $project: {
+                    fullName: 1,
+                    username: 1,
+                    avatar: 1,
+                  },
+                },
+              ],
+            },
+          },
+          {
+            $addFields: {
+              owner: {
+                $first: "$owner",
+              },
+            },
+          },
+        ],
+      },
+    },
+  ]);
+
+  if (!user){
+    ERROR(404, "Watch history is not found!")
   }
 
   return response.status(200).json(
-    new ApiResponse(200, channel[0], "User channel fetched successfully!")
+    new ApiResponse(200, user[0].watchHistory, "Watch history fetched successfully!")
   )
 });
