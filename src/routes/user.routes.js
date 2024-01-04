@@ -4,16 +4,34 @@ import {
   loginUser,
   logoutUser,
   refreshAccessToken,
+  changeCurrentPassword,
+  getCurrentUser,
+  changeCurrentFullName,
+  changeCurrentEmail,
+  changeCurrentUserName,
+  changeCurrentAvatar,
+  changeCurrentCoverImage,
+  getUserProfile,
+  getWatchHistory,
 } from "../controllers/user.controller.js";
 import { upload } from "../middlewares/multer.middleware.js";
 import { verifyJWT } from "../middlewares/auth.middleeare.js";
 
 export const router = Router();
 
-router.route("/register").post(upload.array("images", 2), registerUser);
+router.route("/auth/register").post(upload.array("images", 2), registerUser);
 
-router.route("/login").post(loginUser);
+router.route("/auth/login").post(loginUser);
 
 // secured routes
-router.route("/logout").post(verifyJWT, logoutUser);
-router.route("/get-access-token").post(refreshAccessToken)
+router.route("/user/logout").post(verifyJWT, logoutUser);
+router.route("/user/get-access-token").post(refreshAccessToken)
+router.route("/user/change-password").patch(verifyJWT, changeCurrentPassword)
+router.route("/user/profile").get(verifyJWT, getCurrentUser)
+router.route("/user/change-fullname").patch(verifyJWT, changeCurrentFullName)
+router.route("/user/change-email").patch(verifyJWT, changeCurrentEmail)
+router.route("/user/change-username").patch(verifyJWT, changeCurrentUserName)
+router.route("/user/change-avatar").patch(verifyJWT, upload.single("avatar"), changeCurrentAvatar)
+router.route("/user/change-cover-image").patch(verifyJWT, upload.single("coverImage"), changeCurrentCoverImage)
+router.route("/channel/:username").get(verifyJWT, getUserProfile)
+router.route("/user/history").get(verifyJWT, getWatchHistory)
