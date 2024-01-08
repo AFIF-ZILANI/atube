@@ -259,28 +259,21 @@ export const changeCurrentFullName = asyncHandler(async (request, response) => {
     ERROR(400, "New full Name is required!");
   }
 
-  try {
-    const user = await User.findByIdAndUpdate(
-      request.auth?._id,
-      {
-        $set: {
-          fullName,
-        },
+  const user = await User.findByIdAndUpdate(
+    request.auth?._id,
+    {
+      $set: {
+        fullName,
       },
-      {
-        new: true,
-      }
-    ).select("-password -refreshToken");
+    },
+    {
+      new: true,
+    }
+  ).select("-password -refreshToken");
 
-    return response
-      .status(200)
-      .json(new ApiResponse(200, user, "Full Name updated successfully!"));
-  } catch (error) {
-    ERROR(
-      400,
-      error.message || "something went wrong on updating the Full Name!"
-    );
-  }
+  return response
+    .status(200)
+    .json(new ApiResponse(200, user, "Full Name updated successfully!"));
 });
 
 export const changeCurrentEmail = asyncHandler(async (request, response) => {
@@ -290,31 +283,27 @@ export const changeCurrentEmail = asyncHandler(async (request, response) => {
     ERROR(400, "New email is required!");
   }
 
-  try {
-    const existedUser = await User.findOne({ email });
+  const existedUser = await User.findOne({ email });
 
-    if (!existedUser) {
-      ERROR(400, "email has already used!");
-    }
-
-    const user = await User.findByIdAndUpdate(
-      request.auth?._id,
-      {
-        $set: {
-          email,
-        },
-      },
-      {
-        new: true,
-      }
-    ).select("-password -refreshToken");
-
-    return response
-      .status(200)
-      .json(new ApiResponse(200, user, "Email updated successfully!"));
-  } catch (error) {
-    ERROR(400, error.message || "something went wrong on updating the email!");
+  if (existedUser) {
+    ERROR(400, "email has already used!");
   }
+
+  const user = await User.findByIdAndUpdate(
+    request.auth?._id,
+    {
+      $set: {
+        email,
+      },
+    },
+    {
+      new: true,
+    }
+  ).select("-password -refreshToken");
+
+  return response
+    .status(200)
+    .json(new ApiResponse(200, user, "Email updated successfully!"));
 });
 
 export const changeCurrentUserName = asyncHandler(async (request, response) => {
@@ -327,7 +316,7 @@ export const changeCurrentUserName = asyncHandler(async (request, response) => {
   try {
     const existedUser = await User.findOne({ username });
 
-    if (!existedUser) {
+    if (existedUser) {
       ERROR(400, "username has already used!");
     }
 
@@ -358,21 +347,51 @@ export const changeCurrentAvatar = asyncHandler(async (request, response) => {
   const localAvatarPath = request.file?.path;
 
   if (!localAvatarPath) {
-    ERROR(400, "Avatar file is missing");
+    ERROR(400, "Avatar is missing");
   }
 
-  try {
-    const avatar = await uploadOnCloudinary(localAvatarPath);
+  const avatar = await uploadOnCloudinary(localAvatarPath);
 
-    if (!avatar.url) {
-      ERROR(500, "Error while uploading avatar on cloudnary!");
+  if (!avatar.url) {
+    ERROR(500, "Error while uploading avatar on cloudnary!");
+  }
+
+  const user = await User.findByIdAndUpdate(
+    request.auth?._id,
+    {
+      $set: {
+        avatar: avatar.url,
+      },
+    },
+    {
+      new: true,
+    }
+  ).select("-password -refreshToken");
+
+  return response
+    .status(200)
+    .json(new ApiResponse(200, user, "Updated Avatar Successfully!"));
+});
+
+export const changeCurrentCoverImage = asyncHandler(
+  async (request, response) => {
+    const localCoverImage = request.file?.path;
+
+    if (!localCoverImage) {
+      ERROR(400, "Cover Image is missing");
+    }
+
+    const coverImage = await uploadOnCloudinary(localCoverImage);
+
+    if (!coverImage.url) {
+      ERROR(500, "Error while uploading cover image on cloudnary!");
     }
 
     const user = await User.findByIdAndUpdate(
       request.auth?._id,
       {
         $set: {
-          avatar: avatar.url,
+          coverImage: coverImage.url,
         },
       },
       {
@@ -382,48 +401,7 @@ export const changeCurrentAvatar = asyncHandler(async (request, response) => {
 
     return response
       .status(200)
-      .json(new ApiResponse(200, user, "Updated Avatar Successfully!"));
-  } catch (error) {
-    ERROR(400, error.message || "Something went wrong on updating the avatar!");
-  }
-});
-
-export const changeCurrentCoverImage = asyncHandler(
-  async (request, response) => {
-    const localCoverImage = request.file?.path;
-
-    if (!localCoverImage) {
-      ERROR(400, "Avatar file is missing");
-    }
-
-    try {
-      const coverImage = await uploadOnCloudinary(localCoverImage);
-
-      if (!coverImage.url) {
-        ERROR(500, "Error while uploading cover image on cloudnary!");
-      }
-
-      const user = await User.findByIdAndUpdate(
-        request.auth?._id,
-        {
-          $set: {
-            coverImage: coverImage.url,
-          },
-        },
-        {
-          new: true,
-        }
-      ).select("-password -refreshToken");
-
-      return response
-        .status(200)
-        .json(new ApiResponse(200, user, "Updated Cover Image Successfully!"));
-    } catch (error) {
-      ERROR(
-        400,
-        error.message || "Something went wrong on updating the cover image!"
-      );
-    }
+      .json(new ApiResponse(200, user, "Updated Cover Image Successfully!"));
   }
 );
 
@@ -504,7 +482,7 @@ export const getWatchHistory = asyncHandler(async (request, response) => {
   const user = await User.aggregate([
     {
       $match: {
-        _id: new mongoose.Schema.Types.ObjectId(request.auth?._id),
+        _id: new mongoose.Types.ObjectId(request.auth?._id),
       },
     },
     {
@@ -543,11 +521,17 @@ export const getWatchHistory = asyncHandler(async (request, response) => {
     },
   ]);
 
-  if (!user){
-    ERROR(404, "Watch history is not found!")
+  if (!user) {
+    ERROR(404, "Watch history is not found!");
   }
 
-  return response.status(200).json(
-    new ApiResponse(200, user[0].watchHistory, "Watch history fetched successfully!")
-  )
+  return response
+    .status(200)
+    .json(
+      new ApiResponse(
+        200,
+        user[0].watchHistory,
+        "Watch history fetched successfully!"
+      )
+    );
 });

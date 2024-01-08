@@ -24,9 +24,9 @@ router.route("/auth/register").post(upload.array("images", 2), registerUser);
 router.route("/auth/login").post(loginUser);
 
 // secured routes
-router.route("/user/logout").post(verifyJWT, logoutUser);
-router.route("/user/get-access-token").post(refreshAccessToken)
-router.route("/user/change-password").patch(verifyJWT, changeCurrentPassword)
+router.route("/auth/logout").post(verifyJWT, logoutUser);
+router.route("/auth/get-access-token").post(refreshAccessToken)
+router.route("/user/change-password").post(verifyJWT, changeCurrentPassword)
 router.route("/user/profile").get(verifyJWT, getCurrentUser)
 router.route("/user/change-fullname").patch(verifyJWT, changeCurrentFullName)
 router.route("/user/change-email").patch(verifyJWT, changeCurrentEmail)
